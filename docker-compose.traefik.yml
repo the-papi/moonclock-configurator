@@ -1,0 +1,17 @@
+networks:
+  # Prepared for proxy
+  web:
+    external: true
+
+
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    labels:
+      traefik.enable: true
+      traefik.http.routers.pastitude.rule: Host(`mc-config.nobin.dev`)
+      traefik.http.routers.pastitude.entryPoints: https
+    networks:
+      - web

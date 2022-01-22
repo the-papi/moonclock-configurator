@@ -12,7 +12,7 @@ services:
       - ./dist:/usr/share/nginx/html:ro
     labels:
       traefik.enable: true
-      traefik.http.routers.pastitude.rule: Host(`mc-config.nobin.dev`)
-      traefik.http.routers.pastitude.entryPoints: https
+      traefik.http.routers.moonclock_configurator.rule: Host(`mc-config.nobin.dev`)
+      traefik.http.routers.moonclock_configurator.entryPoints: https
     networks:
       - web

@@ -392,7 +392,8 @@ export default {
     exportConfig () {
       const result = { apps: [] }
 
-      for (const v of Object.values(this.addedApps)) {
+      for (const id of this.addedAppsIds) {
+        const v = this.addedApps[id]
         if (v.data) {
           const appConfig = { name: v.name }
           Object.assign(appConfig, v.data)

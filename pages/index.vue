@@ -76,13 +76,14 @@
           <v-col ref="appConfigForm">
             <span v-for="appIndex in addedAppsIds.length" :key="addedAppsIds[appIndex]">
               <keep-alive>
-                <component
-                  :is="appConfigFormComponent"
+                <AppConfigForm
                   v-show="selectedApp !== null && selectedApp !== undefined && selectedApp === (appIndex - 1)"
                   v-if="Object.keys(addedApps)[appIndex] !== null && Object.keys(addedApps)[(appIndex - 1)] !== undefined"
                   :key="addedAppsIds[appIndex - 1]"
+                  :ref="addedAppsIds[appIndex - 1]"
                   v-model="addedApps[Object.keys(addedApps)[(appIndex - 1)]].data"
                   :fields="apps[addedApps[Object.keys(addedApps)[(appIndex - 1)]].name].form"
+                  :form-config="apps[addedApps[Object.keys(addedApps)[(appIndex - 1)]].name].formConfig"
                 />
               </keep-alive>
             </span>
@@ -108,11 +109,12 @@
 
 <script>
 
+import moment from 'moment-timezone'
+
 export default {
   name: 'IndexPage',
   data () {
     return {
-      appConfigFormComponent: 'AppConfigForm',
       selectedAppToBeAdded: null,
       addedAppsIds: [],
       addedApps: {},
@@ -124,9 +126,11 @@ export default {
           label: 'Time',
           icon: 'mdi-clock',
           form: [{
-            type: 'text',
+            type: 'select',
             name: 'timezone',
             label: 'Timezone (Required)',
+            items: moment.tz.names(),
+            defaultValue: 'Europe/Prague',
             rules: [v => !!v || 'Required']
           }, {
             type: 'boolean',
@@ -139,38 +143,79 @@ export default {
           label: 'Crypto',
           icon: 'mdi-bitcoin',
           form: [{
+            type: 'select',
+            name: 'api',
+            label: 'API',
+            items: [
+              { text: 'Coingecko', value: 'coingecko' },
+              { text: 'Binance', value: 'binance' },
+              { text: 'FTX', value: 'ftx' },
+              { text: 'Coinbase', value: 'coinbase' },
+              { text: 'KuCoin', value: 'kucoin' }
+            ],
+            defaultValue: 'ftx'
+          }, {
             type: 'text',
             name: 'crypto',
             label: 'Crypto (Required)',
-            rules: [v => !!v || 'Required']
+            rules: [v => !!v || 'Required'],
+            vif (self) {
+              const result = self.data && self.data.api === 'coingecko'
+              if (result) {
+                self.$set(self.data, 'ticker', undefined)
+              }
+              return result
+            }
           }, {
             type: 'text',
             name: 'base_currency',
             label: 'Base currency (Required)',
-            rules: [v => !!v || 'Required']
+            rules: [v => !!v || 'Required'],
+            vif (self) {
+              const result = self.data && self.data.api === 'coingecko'
+              if (result) {
+                self.$set(self.data, 'ticker', undefined)
+              }
+              return result
+            }
+          }, {
+            type: 'text',
+            name: 'ticker',
+            label: 'Ticker (Required)',
+            rules: [v => !!v || 'Required'],
+            vif (self) {
+              const result = self.data && self.data.api !== 'coingecko'
+              if (result) {
+                self.$set(self.data, 'crypto', undefined)
+                self.$set(self.data, 'base_currency', undefined)
+              }
+              return result
+            }
           }, {
             type: 'number',
             name: 'decimals',
             label: 'Number of decimals'
           }, {
-            type: 'text',
+            type: 'select',
             name: 'thousands_separator',
-            label: 'Thousands separator'
+            label: 'Thousands separator',
+            items: [{ text: 'None', value: '' }, { text: 'Space', value: ' ' }]
           }]
         },
         auto_contrast: {
           label: 'Auto Contrast',
           icon: 'mdi-brightness-6',
+          formConfig: {
+            disabledDuration: true,
+            disabledUpdateFrequency: true,
+            disabledAlignment: true,
+            defaultDuration: 0
+          },
           form: [{
-            type: 'text',
-            name: 'latitude',
-            label: 'Latitude (Required)',
-            rules: [v => !!v || 'Required']
-          }, {
-            type: 'text',
-            name: 'longitude',
-            label: 'Longitude (Required)',
-            rules: [v => !!v || 'Required']
+            type: 'map',
+            name: 'latlng',
+            label: 'Choose your location',
+            defaultValue: [50.08283, 14.43616]
           }, {
             type: 'number-slider',
             name: 'contrast_after_sunrise',
@@ -329,6 +374,15 @@ export default {
       return result
     }
   },
+  watch: {
+    selectedApp (newVal, oldVal) {
+      if (newVal !== null && newVal !== undefined) {
+        if (this.$refs[this.addedAppsIds[newVal]][0].displayed) {
+          this.$refs[this.addedAppsIds[newVal]][0].displayed()
+        }
+      }
+    }
+  },
   methods: {
     addNewApp (name) {
       this.$nextTick(() => {
@@ -362,6 +416,9 @@ export default {
     },
     remove (appId) {
       const index = this.addedAppsIds.indexOf(appId)
+      if (this.selectedApp === index) {
+        this.selectedApp = null
+      }
       if (index !== -1) {
         this.addedAppsIds.splice(index, 1)
       }

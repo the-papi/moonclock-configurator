@@ -120,7 +120,7 @@ export default {
         { text: 'Center', value: 'center' },
         { text: 'Right', value: 'right' }
       ],
-      data: {}
+      data: this.value
     }
   },
   watch: {
@@ -132,7 +132,7 @@ export default {
     this.data.duration = this.formConfig.defaultDuration
 
     for (const field of this.fields) {
-      if (field.defaultValue !== null && field.defaultValue !== undefined) {
+      if (field.defaultValue !== null && field.defaultValue !== undefined && this.data[field.name] === undefined) {
         this.$set(this.data, field.name, field.defaultValue)
       }
     }

@@ -129,7 +129,9 @@ export default {
     }
   },
   created () {
-    this.data.duration = this.formConfig.defaultDuration
+    if (this.data.duration === undefined) {
+      this.data.duration = this.formConfig.defaultDuration
+    }
 
     for (const field of this.fields) {
       if (field.defaultValue !== null && field.defaultValue !== undefined && this.data[field.name] === undefined) {

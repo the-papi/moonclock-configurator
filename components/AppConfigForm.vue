@@ -109,8 +109,7 @@ export default {
     },
     value: {
       type: Object,
-      default: () => {
-      }
+      default: () => { return {} }
     }
   },
   data () {
@@ -129,7 +128,7 @@ export default {
     }
   },
   created () {
-    if (this.data !== undefined && this.formConfig !== undefined && this.data.duration === undefined) {
+    if (this.data.duration === undefined && this.formConfig !== undefined) {
       this.data.duration = this.formConfig.defaultDuration
     }
 

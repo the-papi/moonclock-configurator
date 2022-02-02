@@ -129,7 +129,7 @@ export default {
     }
   },
   created () {
-    if (this.data.duration === undefined) {
+    if (this.data !== undefined && this.formConfig !== undefined && this.data.duration === undefined) {
       this.data.duration = this.formConfig.defaultDuration
     }
 
